@@ -9,7 +9,6 @@ export default function validAnagram(str1, str2) {
   function compare(freqCounter1, freqCounter2) {
     if (Object.keys(freqCounter1).length !== Object.keys(freqCounter2).length) return false
     for (let letter in freqCounter1) {
-      console.log(freqCounter1[letter] !== freqCounter2[letter])
       if (freqCounter1[letter] !== freqCounter2[letter]) return false
     }
     return true
