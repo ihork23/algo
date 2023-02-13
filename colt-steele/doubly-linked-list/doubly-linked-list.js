@@ -2,10 +2,11 @@ class Node {
   constructor(val) {
     this.val = val
     this.next = null
+    this.prev = null
   }
 }
 
-class SinglyLinkedList {
+class DoublyLinkedList {
   constructor() {
     this.head = null
     this.tail = null
@@ -18,6 +19,7 @@ class SinglyLinkedList {
       this.head = node
     } else {
       this.tail.next = node
+      node.prev = this.tail
     }
     this.tail = node
     this.length += 1
@@ -25,29 +27,32 @@ class SinglyLinkedList {
   }
 
   pop() {
-    if (!this.head) return undefined
-    let candidate
-    let current = this.head
-    while (current.next) {
-      candidate = current
-      current = current.next
-    }
-    candidate.next = null
-    this.tail = candidate
-    this.length -= 1
-    if (this.length === 0) {
-      this.head = null
+    if (!this.tail) return undefined
+    const poppedNode = this.tail
+    if (this.length === 1) {
       this.tail = null
+      this.head = null
+      this.length -= 1
+    } else {
+      const prev = this.tail.prev
+      prev.next = null
+      this.length--
+      this.tail = prev
     }
-    return current
+    poppedNode.prev = null
+    return poppedNode
   }
 
   shift() {
     if (!this.head) return undefined
     const oldHead = this.head
-    this.head = oldHead.next
-    if (!this.head) {
+    if (this.length === 1) {
+      this.head = null
       this.tail = null
+    } else {
+      this.head = oldHead.next
+      this.head.prev = null
+      oldHead.next = null
     }
     this.length -= 1
     return oldHead
@@ -60,6 +65,7 @@ class SinglyLinkedList {
       this.tail = newNode
     } else {
       newNode.next = this.head
+      this.head.prev = newNode
       this.head = newNode
     }
     this.length += 1
@@ -68,11 +74,16 @@ class SinglyLinkedList {
 
   get(index) {
     if (index < 0 || index >= this.length) return null
-    let currentNode = this.head
-    for (let i = 0; i < this.length; i++) {
-      if (i === index) return currentNode
-      currentNode = currentNode.next
+    const backwardDirection = this.length / 2 < index
+    const nodeStepMaker = backwardDirection ? node => node.prev : node => node.next
+    const indexStepMaker = backwardDirection ? i => i - 1 : i => i + 1
+    let currentNode = backwardDirection ? this.tail : this.head
+    let currentIndex = backwardDirection ? this.length - 1 : 0
+    while (currentIndex !== index) {
+      currentNode = nodeStepMaker(currentNode)
+      currentIndex = indexStepMaker(currentIndex)
     }
+    return currentNode
   }
 
   set(index, value) {
@@ -97,7 +108,9 @@ class SinglyLinkedList {
     const newNode = new Node(value)
     const previousNode = this.get(index - 1)
     newNode.next = previousNode.next
+    newNode.next.prev = newNode
     previousNode.next = newNode
+    newNode.prev = previousNode
     this.length += 1
     return true
   }
@@ -113,7 +126,9 @@ class SinglyLinkedList {
       return true
     }
     const previousNode = this.get(index - 1)
-    previousNode.next = previousNode.next.next
+    const nextNode = previousNode.next.next
+    previousNode.next = nextNode
+    nextNode.prev = previousNode
     this.length -= 1
     return true
   }
